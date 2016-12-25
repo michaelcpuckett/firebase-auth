@@ -4,8 +4,8 @@
       "$user_id": {
         // grants write access to the owner of this user account
         // whose uid must exactly match the key ($user_id)
-        ".write": "$user_id === auth.uid && auth.emailVerified === true",
-        ".read": "$user_id === auth.uid && auth.emailVerified === true"
+        ".write": "$user_id === auth.uid && auth.token.email_verified === true",
+        ".read": "$user_id === auth.uid && auth.token.email_verified === true"
       }
     }
   }
