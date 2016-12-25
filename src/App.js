@@ -5,8 +5,6 @@ import { connect } from 'react-redux'
 import * as firebase from 'firebase'
 import config from './config.json'
 
-firebase.initializeApp(config)
-
 const store = createStore((state, action) => {
     var newState
     switch (action.type) {
@@ -29,6 +27,7 @@ const App = connect(state => ({
             isLoggedIn: false,
             isLoading: true
         }
+        firebase.initializeApp(config)
     }
     setUser (data) {
         store.dispatch({
