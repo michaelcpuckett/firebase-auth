@@ -119,23 +119,35 @@ const App = connect(state => ({
   updateProfile () {
       let authUser = this.auth.currentUser
       if (authUser) {
-          let { uid, email, photoURL } = authUser
-          let user = {
-              uid,
-              email,
-              photoURL
+
+          if (!this.state.isEditingProfile) {
+              this.setState({
+                  isEditingProfile: true
+              })
+          } else {
+              let { uid, email, photoURL } = authUser
+              let user = {
+                  uid,
+                  email,
+                  photoURL
+              }
+              let { birthYear, birthMonth, birthDay, displayName } = this.refs
+              let displayNameValue = displayName.value
+              let birthdayValue = `${birthYear.value}-${birthMonth.value}-${birthDay.value}`
+
+              Object.assign(user, {displayNameValue, birthdayValue})
+              authUser.updateProfile({
+                  displayNameValue
+             }).catch(err => {
+                 alert(err.toString())
+             })
+             this.writeUserData(user.uid, user).catch(err => {
+                 alert(err.toString())
+             })
+             this.setState({
+                 isEditingProfile: false
+             })
           }
-          let displayName = prompt("Name")
-          let birthday = prompt("Birthday")
-          Object.assign(user, {displayName, birthday})
-          authUser.updateProfile({
-              displayName
-         }).catch(err => {
-             alert(err.toString())
-         })
-         this.writeUserData(user.uid, user).catch(err => {
-             alert(err.toString())
-         })
       }
   }
   sendEmailVerification () {
@@ -170,6 +182,33 @@ const App = connect(state => ({
                                         <div>
                                           <button onClick={() => this.updateProfile()}>Update Profile</button>
                                           <br />
+                                          {this.state.isEditingProfile && (
+                                              <div>
+                                                  <label>
+                                                      displayName <input type="text" ref="displayName"/>
+                                                  </label>
+                                                  <label>
+                                                      BirthYear
+                                                        <select type="number" ref="birthYear">
+
+                                                            <option value="1987">1987</option>
+                                                        </select>
+                                                  </label>
+                                                  <label>
+                                                      BirthMonth
+                                                        <select type="number" ref="birthMonth">
+                                                            <option value="06">06</option>
+                                                        </select>
+                                                  </label>
+                                                  <label>
+                                                      BirthDay
+                                                        <select type="number" ref="birthDay">
+                                                            <option value="17">17</option>
+                                                            <option value="18">18</option>
+                                                        </select>
+                                                  </label>
+                                              </div>
+                                          )}
                                           <button onClick={() => this.signOut()}>Sign Out</button>
                                           <button onClick={() => this.deleteAccount()}>Delete Account</button>
                                         </div>
