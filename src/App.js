@@ -186,6 +186,7 @@ const App = connect(state => ({
                               <label>
                                   Username <input type="text" ref="email"/>
                               </label>
+                              <br />
                               <label>
                                   Password <input type="password" ref="password"/>
                               </label>
