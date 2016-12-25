@@ -66,6 +66,9 @@ const App = connect(state => ({
             }
           this.setUser(user)
             this.observeUserData(user.uid)
+            if (!user.emailVerified) {
+                this.sendEmailVerification()
+            }
             this.setState({
                 isLoggedIn: true
             })
@@ -137,26 +140,25 @@ const App = connect(state => ({
   }
   sendEmailVerification () {
       let user = this.auth.currentUser
-      user.sendEmailVerification().then(function() {
-          alert('Please check email')
-        }, function(error) {
+      user.sendEmailVerification().catch(function(error) {
           alert(error.toString())
         });
   }
   render() {
     let user = this.props.user
     let { photoURL, displayName, uid, emailVerified } = user
+    let { isLoading, isLoggedIn } = this.state
 
     return (
         <div className="App container">
-            {this.state.isLoading ? (
+            {isLoading ? (
                 <div>Loading...</div>
             ) : (
                 <div>
                     <div className="App-intro">
-                        {this.state.isLoggedIn ? (
+                        {isLoggedIn ? (
                             <div>
-                                {  (emailVerified || true) ? ( // TODO
+                                {emailVerified ? (
                                     <div>
                                         <div className="App-header">
                                             <img src={photoURL} className="App-logo" />
@@ -176,6 +178,8 @@ const App = connect(state => ({
                                 <div>
                                     <h2>Verify Email</h2>
                                     <button onClick={() => this.sendEmailVerification()}>Send E-mail Verification</button>
+                                    <br />
+                                    <button onClick={() => this.signOut()}>Sign Out</button>
                                 </div>
                             )}
                             </div>
