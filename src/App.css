@@ -22,11 +22,38 @@ h2 {
 
 .container {
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
 }
 
 .login-form {
-    align-self: center;
+    align-self: flex-start;
+}
+
+input {
+    border: 1px solid black;
+    padding: 10px;
+    min-width: 200px;
+    margin: 10px;
+    font-size: 1em;
+}
+input:hover {
+    background-color: #f9f9f9;
+}
+
+label {
+    cursor: pointer;
+}
+
+button {
+    background: none;
+    color: gray;
+    font-size: 1em;
+    cursor: pointer;
+    border: 2px solid gray;
+    margin: 10px;
+    transition: all .15s;
+}
+button:hover {
+    background-color: gray;
+    color: white;
 }

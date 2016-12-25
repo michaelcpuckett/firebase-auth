@@ -187,11 +187,9 @@ const App = connect(state => ({
                               <label>
                                   Username <input type="text" ref="email"/>
                               </label>
-                              <br />
                               <label>
                                   Password <input type="password" ref="password"/>
                               </label>
-                              <br/>
                               <button onClick={() => this.signInWithEmail()}>Sign In</button>
                               <button onClick={() => this.signUpWithEmail()}>Sign Up</button>
                             </form>
