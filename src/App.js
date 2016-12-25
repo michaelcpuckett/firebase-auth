@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import { createStore } from 'redux'
 import { connect } from 'react-redux'
@@ -79,7 +78,7 @@ const App = connect(state => ({
     writeUserData(userId, data) {
         return this.database.ref('users/' + userId).set(data)
     }
-    deleteUser() {
+    deleteAccount() {
          if (this.auth.currentUser) {
             let userId = this.auth.currentUser.uid
 
@@ -113,7 +112,7 @@ const App = connect(state => ({
           alert(error.toString())
       })
   }
-  updateBasicProfile () {
+  updateProfile () {
       let authUser = this.auth.currentUser
       if (authUser) {
           let { uid, email, photoURL } = authUser
@@ -148,7 +147,7 @@ const App = connect(state => ({
     let { photoURL, displayName, uid, emailVerified } = user
 
     return (
-        <div className="App">
+        <div className="App container">
             {this.state.isLoading ? (
                 <div>Loading...</div>
             ) : (
@@ -166,9 +165,10 @@ const App = connect(state => ({
                                             </h2>
                                         </div>
                                         <div>
-                                          <button onClick={() => this.updateBasicProfile()}>Update Profile</button>
+                                          <button onClick={() => this.updateProfile()}>Update Profile</button>
+                                          <br />
                                           <button onClick={() => this.signOut()}>Sign Out</button>
-                                          <button onClick={() => this.deleteUser()}>Delete Account</button>
+                                          <button onClick={() => this.deleteAccount()}>Delete Account</button>
                                         </div>
                                     </div>
                             ) : (
