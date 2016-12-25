@@ -18,6 +18,46 @@ const store = createStore((state, action) => {
     }
 }, {}, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())
 
+class LoginForm extends Component {
+    componentWillMount () {
+          var auth = firebase.auth()
+          this.auth = auth
+    }
+  signInWithEmail() {
+    var email = this.refs.email.value.trim()
+    var password = this.refs.password.value
+      this.auth.signInWithEmailAndPassword(email, password).catch(err => {
+            alert(err.toString())
+        })
+  }
+    signUpWithEmail() {
+        var email = this.refs.email.value
+        var password = this.refs.password.value
+        this.auth.createUserWithEmailAndPassword(email, password).then(() => {
+            alert('hello new user')
+        }).catch(function(error) {
+            alert(error.toString())
+        })
+    }
+    render () {
+        return (
+            <form action="#" onSubmit={function (e) {
+                e.preventDefault()
+                e.stopPropagation()
+            }}>
+              <label>
+                  Username <input type="text" ref="email"/>
+              </label>
+              <label>
+                  Password <input type="password" ref="password"/>
+              </label>
+              <button onClick={() => this.signInWithEmail()}>Sign In</button>
+              <button onClick={() => this.signUpWithEmail()}>Sign Up</button>
+            </form>
+        )
+    }
+}
+
 const App = connect(state => ({
     user: state.user || {}
 }))(class App extends Component {
@@ -66,9 +106,6 @@ const App = connect(state => ({
             }
           this.setUser(user)
             this.observeUserData(user.uid)
-            if (!user.emailVerified) {
-                this.sendEmailVerification()
-            }
             this.setState({
                 isLoggedIn: true
             })
@@ -92,28 +129,12 @@ const App = connect(state => ({
             })
         }
     }
-  signInWithEmail() {
-    var email = this.refs.email.value.trim()
-    var password = this.refs.password.value
-      this.auth.signInWithEmailAndPassword(email, password).catch(err => {
-            alert(err.toString())
-        })
-  }
   signOut() {
       this.auth.signOut().then(() => {
           this.setState({
               isLoggedIn: false
           })
           this.setUser(null)
-      })
-  }
-  signUpWithEmail() {
-      var email = this.refs.email.value
-      var password = this.refs.password.value
-      this.auth.createUserWithEmailAndPassword(email, password).then(() => {
-          alert('hello new user')
-      }).catch(function(error) {
-          alert(error.toString())
       })
   }
   updateProfile () {
@@ -132,13 +153,13 @@ const App = connect(state => ({
                   photoURL
               }
               let { birthYear, birthMonth, birthDay, displayName } = this.refs
-              let displayNameValue = displayName.value
               let birthdayValue = `${birthYear.value}-${birthMonth.value}-${birthDay.value}`
 
-              Object.assign(user, {displayNameValue, birthdayValue})
-              authUser.updateProfile({
-                  displayNameValue
-             }).catch(err => {
+              Object.assign(user, {
+                  displayName: displayName.value || authUser.displayName,
+                  birthday: birthdayValue
+              })
+              authUser.updateProfile(user).catch(err => {
                  alert(err.toString())
              })
              this.writeUserData(user.uid, user).catch(err => {
@@ -218,24 +239,14 @@ const App = connect(state => ({
                                     <h2>Verify Email</h2>
                                     <button onClick={() => this.sendEmailVerification()}>Send E-mail Verification</button>
                                     <br />
+                                    <button onClick={() => window.location = window.location}>Refresh</button>
+                                    <br />
                                     <button onClick={() => this.signOut()}>Sign Out</button>
                                 </div>
                             )}
                             </div>
                         ) : (
-                            <form action="#" onSubmit={function (e) {
-                                e.preventDefault()
-                                e.stopPropagation()
-                            }}>
-                              <label>
-                                  Username <input type="text" ref="email"/>
-                              </label>
-                              <label>
-                                  Password <input type="password" ref="password"/>
-                              </label>
-                              <button onClick={() => this.signInWithEmail()}>Sign In</button>
-                              <button onClick={() => this.signUpWithEmail()}>Sign Up</button>
-                            </form>
+                            <LoginForm />
                         )}
                     </div>
                 </div>
