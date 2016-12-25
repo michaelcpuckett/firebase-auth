@@ -14,4 +14,4 @@ build
 .env
 npm-debug.log
 
-public/config.js
+src/config.json

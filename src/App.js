@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import './App.css';
 import { createStore } from 'redux'
 import { connect } from 'react-redux'
+import * as firebase from 'firebase'
+import config from './config.json'
+
+firebase.initializeApp(config)
 
 const store = createStore((state, action) => {
     var newState
@@ -39,8 +43,6 @@ const App = connect(state => ({
         })
     }
     componentWillMount() {
-      var firebase = window.firebase
-
       var auth = firebase.auth()
       this.auth = auth
 
@@ -89,7 +91,7 @@ const App = connect(state => ({
         }
     }
   signInWithEmail() {
-    var email = this.refs.email.value
+    var email = this.refs.email.value.trim()
     var password = this.refs.password.value
       this.auth.signInWithEmailAndPassword(email, password).catch(err => {
             alert(err.toString())
