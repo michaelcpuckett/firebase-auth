@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import { createStore } from 'redux'
-import { connect } from 'react-redux'
+import { connect, Provider } from 'react-redux'
 import * as firebase from 'firebase'
 import config from './config.json'
 
@@ -96,6 +96,85 @@ class SelectGroup extends Component {
     }
 }
 
+class EditProfileForm extends Component {
+    componentWillMount () {
+      var database = firebase.database()
+      this.database = database
+
+        var auth = firebase.auth()
+        this.auth = auth
+    }
+    getBirthdayValue (refs) {
+        return Object.keys(refs).reduce((a, b) => {
+            return a + refs[b].value + '-'
+        }, '').slice(0, -1)
+    }
+    onSubmit () {
+        let { uid, email, photoURL } = this.props.user
+        let user = {
+            uid,
+            email,
+            photoURL
+        }
+        let { birthday, displayName } = this.refs
+
+        Object.assign(user, {
+            displayName: displayName.getValue(),
+            birthday: birthday.getValue()
+        })
+        this.auth.currentUser.updateProfile(user).catch(err => {
+           alert(err.toString())
+       })
+       this.writeUserData(user.uid, user).catch(err => {
+           alert(err.toString())
+       })
+    }
+    writeUserData(userId, data) {
+        return this.database.ref('users/' + userId).set(data)
+    }
+    render () {
+        let { displayName } = this.props.user
+        return (
+            <form action="#" onSubmit={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                this.onSubmit()
+            }}>
+                <TextInput value={displayName} label="Display Name" ref="displayName" />
+                <SelectGroup label="Birthday" ref="birthday" getValue={this.getBirthdayValue}>
+                    <select name="birthYear">
+                        {[...Array(110).keys()].map(i => {
+                            i = new Date().getFullYear() - i
+                            return (
+                                <option key={i} value={i}>{i}</option>
+                            )
+                        })}
+                    </select>
+                      <select name="birthMonth">
+                          {[...Array(12).keys()].map(i => {
+                              i++
+                              i = (i < 10 ? '0' : '') + i
+                              return (
+                                  <option key={i} value={i}>{i}</option>
+                              )
+                          })}
+                      </select>
+                      <select name="birthDay">
+                          {[...Array(31).keys()].map(i => {
+                              i++
+                              i = (i < 10 ? '0' : '') + i
+                              return (
+                                  <option key={i} value={i}>{i}</option>
+                              )
+                          })}
+                      </select>
+                </SelectGroup>
+                <button type="submit">Submit</button>
+            </form>
+        )
+    }
+}
+
 const App = connect(state => ({
     user: state.user || {}
 }))(class App extends Component {
@@ -120,11 +199,11 @@ const App = connect(state => ({
         })
     }
     componentWillMount() {
-      var auth = firebase.auth()
-      this.auth = auth
-
       var database = firebase.database()
       this.database = database
+
+      var auth = firebase.auth()
+      this.auth = auth
 
       auth.onAuthStateChanged(user => {
         if (user) {
@@ -154,9 +233,7 @@ const App = connect(state => ({
       })
   }
 
-    writeUserData(userId, data) {
-        return this.database.ref('users/' + userId).set(data)
-    }
+
     deleteAccount() {
          if (this.auth.currentUser) {
             let userId = this.auth.currentUser.uid
@@ -175,37 +252,12 @@ const App = connect(state => ({
           this.setUser(null)
       })
   }
-  updateProfile () {
+  toggleEditProfile () {
       let authUser = this.auth.currentUser
       if (authUser) {
-
-          if (!this.state.isEditingProfile) {
-              this.setState({
-                  isEditingProfile: true
-              })
-          } else {
-              let { uid, email, photoURL } = authUser
-              let user = {
-                  uid,
-                  email,
-                  photoURL
-              }
-              let { birthday, displayName } = this.refs
-
-              Object.assign(user, {
-                  displayName: displayName.getValue(),
-                  birthday: birthday.getValue()
-              })
-              authUser.updateProfile(user).catch(err => {
-                 alert(err.toString())
-             })
-             this.writeUserData(user.uid, user).catch(err => {
-                 alert(err.toString())
-             })
-             this.setState({
-                 isEditingProfile: false
-             })
-          }
+          this.setState({
+              isEditingProfile: !this.state.isEditingProfile
+          })
       }
   }
   sendEmailVerification () {
@@ -214,15 +266,42 @@ const App = connect(state => ({
           alert(error.toString())
         });
   }
-  getBirthdayValue (refs) {
-      return Object.keys(refs).reduce((a, b) => {
-          return a + '-' + refs[b].value
-      }, '')
-  }
   render() {
     let user = this.props.user
     let { photoURL, displayName, uid, emailVerified } = user
     let { isLoading, isLoggedIn } = this.state
+
+    const unverifiedScreen = (
+        <div>
+            <h2>Verify Email</h2>
+            <button onClick={() => this.sendEmailVerification()}>Send E-mail Verification</button>
+            <br />
+            <button onClick={() => window.location = window.location}>Refresh</button>
+            <br />
+            <button onClick={() => this.signOut()}>Sign Out</button>
+        </div>
+    )
+
+    const verifiedScreen = (
+        <div>
+            <div className="App-header">
+                <img src={photoURL} className="App-logo" />
+                <h2>
+                    Welcome, {displayName}
+                    <div>{JSON.stringify(user).split(',').join(', ')}</div>
+                </h2>
+            </div>
+            <div>
+              <button onClick={() => this.toggleEditProfile()}>Update Profile</button>
+              <br />
+              {this.state.isEditingProfile && (
+                <EditProfileForm user={user} />
+              )}
+              <button onClick={() => this.signOut()}>Sign Out</button>
+              <button onClick={() => this.deleteAccount()}>Delete Account</button>
+            </div>
+        </div>
+    )
 
     return (
         <div className="App container">
@@ -234,64 +313,10 @@ const App = connect(state => ({
                         {isLoggedIn ? (
                             <div>
                                 {emailVerified ? (
-                                    <div>
-                                        <div className="App-header">
-                                            <img src={photoURL} className="App-logo" />
-                                            <h2>
-                                                Welcome, {displayName}
-                                                <div>{JSON.stringify(user).split(',').join(', ')}</div>
-                                            </h2>
-                                        </div>
-                                        <div>
-                                          <button onClick={() => this.updateProfile()}>Update Profile</button>
-                                          <br />
-                                          {this.state.isEditingProfile && (
-                                              <div>
-                                                  <TextInput value={displayName} label="Display Name" ref="displayName" />
-                                                  <SelectGroup label="Birthday" ref="birthday" getValue={this.getBirthdayValue}>
-                                                      <select name="birthYear">
-                                                          {[...Array(110).keys()].map(i => {
-                                                              i = new Date().getFullYear() - i
-                                                              return (
-                                                                  <option key={i} value={i}>{i}</option>
-                                                              )
-                                                          })}
-                                                      </select>
-                                                        <select name="birthMonth">
-                                                            {[...Array(12).keys()].map(i => {
-                                                                i++
-                                                                i = (i < 10 ? '0' : '') + i
-                                                                return (
-                                                                    <option key={i} value={i}>{i}</option>
-                                                                )
-                                                            })}
-                                                        </select>
-                                                        <select name="birthDay">
-                                                            {[...Array(31).keys()].map(i => {
-                                                                i++
-                                                                i = (i < 10 ? '0' : '') + i
-                                                                return (
-                                                                    <option key={i} value={i}>{i}</option>
-                                                                )
-                                                            })}
-                                                        </select>
-                                                  </SelectGroup>
-                                              </div>
-                                          )}
-                                          <button onClick={() => this.signOut()}>Sign Out</button>
-                                          <button onClick={() => this.deleteAccount()}>Delete Account</button>
-                                        </div>
-                                    </div>
-                            ) : (
-                                <div>
-                                    <h2>Verify Email</h2>
-                                    <button onClick={() => this.sendEmailVerification()}>Send E-mail Verification</button>
-                                    <br />
-                                    <button onClick={() => window.location = window.location}>Refresh</button>
-                                    <br />
-                                    <button onClick={() => this.signOut()}>Sign Out</button>
-                                </div>
-                            )}
+                                    verifiedScreen
+                                ) : (
+                                    unverifiedScreen
+                                )}
                             </div>
                         ) : (
                             <LoginForm />
@@ -304,10 +329,12 @@ const App = connect(state => ({
     }
 })
 
-export default class FullApp extends Component {
+export default class AppContainer extends Component {
     render () {
         return (
-            <App store={store} />
+            <Provider store={store}>
+                <App store={store} />
+            </Provider>
         )
     }
 }
