@@ -78,6 +78,24 @@ class LoginForm extends Component {
     }
 }
 
+class SelectGroup extends Component {
+    getValue () {
+        return this.props.getValue(this.refs)
+    }
+    render () {
+        return (
+            <div>
+                {this.props.children.map((child, i) => {
+                    return  React.cloneElement(child, {
+                        key: i,
+                        ref: child.props.name
+                    })
+                })}
+            </div>
+        )
+    }
+}
+
 const App = connect(state => ({
     user: state.user || {}
 }))(class App extends Component {
@@ -172,12 +190,11 @@ const App = connect(state => ({
                   email,
                   photoURL
               }
-              let { birthYear, birthMonth, birthDay, displayName } = this.refs
-              let birthdayValue = `${birthYear.value}-${birthMonth.value}-${birthDay.value}`
+              let { birthday, displayName } = this.refs
 
               Object.assign(user, {
                   displayName: displayName.getValue(),
-                  birthday: birthdayValue
+                  birthday: birthday.getValue()
               })
               authUser.updateProfile(user).catch(err => {
                  alert(err.toString())
@@ -196,6 +213,11 @@ const App = connect(state => ({
       user.sendEmailVerification().catch(function(error) {
           alert(error.toString())
         });
+  }
+  getBirthdayValue (refs) {
+      return Object.keys(refs).reduce((a, b) => {
+          return a + '-' + refs[b].value
+      }, '')
   }
   render() {
     let user = this.props.user
@@ -226,9 +248,8 @@ const App = connect(state => ({
                                           {this.state.isEditingProfile && (
                                               <div>
                                                   <TextInput value={displayName} label="Display Name" ref="displayName" />
-                                                  <label>
-                                                      BirthYear
-                                                      <select ref="birthYear">
+                                                  <SelectGroup label="Birthday" ref="birthday" getValue={this.getBirthdayValue}>
+                                                      <select name="birthYear">
                                                           {[...Array(110).keys()].map(i => {
                                                               i = new Date().getFullYear() - i
                                                               return (
@@ -236,10 +257,7 @@ const App = connect(state => ({
                                                               )
                                                           })}
                                                       </select>
-                                                  </label>
-                                                  <label>
-                                                      BirthMonth
-                                                        <select ref="birthMonth">
+                                                        <select name="birthMonth">
                                                             {[...Array(12).keys()].map(i => {
                                                                 i++
                                                                 i = (i < 10 ? '0' : '') + i
@@ -248,10 +266,7 @@ const App = connect(state => ({
                                                                 )
                                                             })}
                                                         </select>
-                                                  </label>
-                                                  <label>
-                                                      BirthDay
-                                                        <select ref="birthDay">
+                                                        <select name="birthDay">
                                                             {[...Array(31).keys()].map(i => {
                                                                 i++
                                                                 i = (i < 10 ? '0' : '') + i
@@ -260,7 +275,7 @@ const App = connect(state => ({
                                                                 )
                                                             })}
                                                         </select>
-                                                  </label>
+                                                  </SelectGroup>
                                               </div>
                                           )}
                                           <button onClick={() => this.signOut()}>Sign Out</button>
