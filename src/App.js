@@ -18,21 +18,45 @@ const store = createStore((state, action) => {
     }
 }, {}, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())
 
+class TextInput extends Component {
+    constructor (ownProps) {
+        super()
+        this.state = {
+            value: ownProps.value
+        }
+    }
+    getValue () {
+        return this.state.value
+    }
+    handleChange (e) {
+        this.setState({value: e.target.value})
+    }
+    render () {
+        let inputType = this.props.type || 'text'
+        return (
+          <label>
+              <span className="label">{this.props.label}</span>
+              <input onChange={(e) => this.handleChange(e)} value={this.state.value} type={inputType} ref="input" />
+          </label>
+      )
+    }
+}
+
 class LoginForm extends Component {
     componentWillMount () {
           var auth = firebase.auth()
           this.auth = auth
     }
   signInWithEmail() {
-    var email = this.refs.email.value.trim()
-    var password = this.refs.password.value
+    var email = this.refs.email.getValue().trim()
+    var password = this.refs.password.getValue()
       this.auth.signInWithEmailAndPassword(email, password).catch(err => {
             alert(err.toString())
         })
   }
     signUpWithEmail() {
-        var email = this.refs.email.value
-        var password = this.refs.password.value
+        var email = this.refs.email.getValue().trim()
+        var password = this.refs.password.getValue()
         this.auth.createUserWithEmailAndPassword(email, password).then(() => {
             alert('hello new user')
         }).catch(function(error) {
@@ -45,12 +69,8 @@ class LoginForm extends Component {
                 e.preventDefault()
                 e.stopPropagation()
             }}>
-              <label>
-                  Username <input type="text" ref="email"/>
-              </label>
-              <label>
-                  Password <input type="password" ref="password"/>
-              </label>
+              <TextInput ref="email" label="Email" />
+              <TextInput type="password" ref="password" label="Password" />
               <button onClick={() => this.signInWithEmail()}>Sign In</button>
               <button onClick={() => this.signUpWithEmail()}>Sign Up</button>
             </form>
@@ -156,7 +176,7 @@ const App = connect(state => ({
               let birthdayValue = `${birthYear.value}-${birthMonth.value}-${birthDay.value}`
 
               Object.assign(user, {
-                  displayName: displayName.value || authUser.displayName,
+                  displayName: displayName.getValue(),
                   birthday: birthdayValue
               })
               authUser.updateProfile(user).catch(err => {
@@ -205,13 +225,10 @@ const App = connect(state => ({
                                           <br />
                                           {this.state.isEditingProfile && (
                                               <div>
-                                                  <label>
-                                                      displayName <input type="text" ref="displayName"/>
-                                                  </label>
+                                                  <TextInput value={displayName} label="Display Name" ref="displayName" />
                                                   <label>
                                                       BirthYear
                                                         <select type="number" ref="birthYear">
-
                                                             <option value="1987">1987</option>
                                                         </select>
                                                   </label>
