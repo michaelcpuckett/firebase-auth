@@ -228,21 +228,37 @@ const App = connect(state => ({
                                                   <TextInput value={displayName} label="Display Name" ref="displayName" />
                                                   <label>
                                                       BirthYear
-                                                        <select type="number" ref="birthYear">
-                                                            <option value="1987">1987</option>
-                                                        </select>
+                                                      <select ref="birthYear">
+                                                          {[...Array(110).keys()].map(i => {
+                                                              i = new Date().getFullYear() - i
+                                                              return (
+                                                                  <option key={i} value={i}>{i}</option>
+                                                              )
+                                                          })}
+                                                      </select>
                                                   </label>
                                                   <label>
                                                       BirthMonth
-                                                        <select type="number" ref="birthMonth">
-                                                            <option value="06">06</option>
+                                                        <select ref="birthMonth">
+                                                            {[...Array(12).keys()].map(i => {
+                                                                i++
+                                                                i = (i < 10 ? '0' : '') + i
+                                                                return (
+                                                                    <option key={i} value={i}>{i}</option>
+                                                                )
+                                                            })}
                                                         </select>
                                                   </label>
                                                   <label>
                                                       BirthDay
-                                                        <select type="number" ref="birthDay">
-                                                            <option value="17">17</option>
-                                                            <option value="18">18</option>
+                                                        <select ref="birthDay">
+                                                            {[...Array(31).keys()].map(i => {
+                                                                i++
+                                                                i = (i < 10 ? '0' : '') + i
+                                                                return (
+                                                                    <option key={i} value={i}>{i}</option>
+                                                                )
+                                                            })}
                                                         </select>
                                                   </label>
                                               </div>
