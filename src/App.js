@@ -4,6 +4,7 @@ import { createStore } from 'redux'
 import { connect, Provider } from 'react-redux'
 import * as firebase from 'firebase'
 import config from './config.json'
+import dateFns from 'date-fns'
 
 const store = createStore((state, action) => {
     var newState
@@ -266,21 +267,19 @@ const App = connect(state => ({
           alert(error.toString())
         });
   }
+  writeStatus () {
+         if (this.auth.currentUser) {
+            let content = prompt("sup")
+            let userId = this.auth.currentUser.uid
+            let timestamp = dateFns.format(Date.now())
+            this.database.ref(`users/${userId}/status`).set({content,timestamp})
+        }
+  }
   render() {
     let user = this.props.user
     let { photoURL, displayName, uid, emailVerified } = user
     let { isLoading, isLoggedIn } = this.state
 
-    const unverifiedScreen = (
-        <div>
-            <h2>Verify Email</h2>
-            <button onClick={() => this.sendEmailVerification()}>Send E-mail Verification</button>
-            <br />
-            <button onClick={() => window.location = window.location}>Refresh</button>
-            <br />
-            <button onClick={() => this.signOut()}>Sign Out</button>
-        </div>
-    )
 
     const verifiedScreen = (
         <div>
@@ -293,6 +292,7 @@ const App = connect(state => ({
             </div>
             <div>
               <button onClick={() => this.toggleEditProfile()}>Update Profile</button>
+              <button onClick={() => this.writeStatus()}>Update Status</button>
               <br />
               {this.state.isEditingProfile && (
                 <EditProfileForm user={user} />
@@ -303,7 +303,18 @@ const App = connect(state => ({
         </div>
     )
 
-    return (
+    const unverifiedScreen = (
+        <div>
+            <h2>Verify Email</h2>
+            <button onClick={() => this.sendEmailVerification()}>Send E-mail Verification</button>
+            <br />
+            <button onClick={() => window.location = window.location}>Refresh</button>
+            <br />
+            <button onClick={() => this.signOut()}>Sign Out</button>
+        </div>
+    )
+
+return (
         <div className="App container">
             {isLoading ? (
                 <div>Loading...</div>
